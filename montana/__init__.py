@@ -1,5 +1,5 @@
 """
-Montana, a simple activity monitor.
+Montana, a simple event monitor.
 
 .. moduleauthor:: Martijn Vermaat <martijn@vermaat.name>
 
@@ -7,7 +7,7 @@ Montana, a simple activity monitor.
 """
 
 
-from flask import Flask
+from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 
 
@@ -54,11 +54,18 @@ def create_app(settings=None):
     :return: Flask application instance.
     """
     app = Flask(__name__)
+
     app.config.from_object('montana.default_settings')
     app.config.from_envvar('MONTANA_SETTINGS', silent=True)
     if settings:
         app.config.update(settings)
     db.init_app(app)
+
     from .api import api
-    app.register_blueprint(api)
+    app.register_blueprint(api, url_prefix='/api')
+
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
     return app

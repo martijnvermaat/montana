@@ -1,4 +1,4 @@
 Montana
 =======
 
-Simple activity monitor.
+Simple event monitor.

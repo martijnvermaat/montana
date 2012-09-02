@@ -36,7 +36,6 @@ def error_forbidden(error):
 
 
 @api.errorhandler(404)
-@api.app_errorhandler(404)
 def error_not_found(error):
     return jsonify(error={
             'code': 'not_found',
