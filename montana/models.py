@@ -12,7 +12,7 @@ from datetime import datetime
 from . import db
 
 
-STATUS_CHOICES = {'ok', 'error'}
+STATUS_CHOICES = ('ok', 'error')
 
 
 class Event(db.Model):
