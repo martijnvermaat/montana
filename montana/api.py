@@ -7,10 +7,12 @@ REST server views.
 """
 
 
-from flask import Blueprint, current_app, jsonify, request, url_for
+from datetime import timedelta
+
+from flask import abort, Blueprint, current_app, jsonify, request, url_for
 
 from . import db
-from .models import Activity, STATUS_CHOICES
+from .models import Event, STATUS_CHOICES
 
 
 API_VERSION = 1
@@ -43,52 +45,54 @@ def error_not_found(error):
 
 @api.route('/')
 def apiroot():
-    api = {'status':     'ok',
-           'version':    API_VERSION,
-           'activities': url_for('.list_activities')}
+    api = {'status':  'ok',
+           'version': API_VERSION,
+           'events':  url_for('.list_events')}
     return jsonify(api=api)
 
 
-@api.route('/activities', methods=['GET'])
-def list_activities():
+@api.route('/events', methods=['GET'])
+def list_events():
     """
-    List activities.
+    List events.
 
     Example usage::
 
-        curl -i http://127.0.0.1:5000/activities
+        curl -i http://127.0.0.1:5000/events
     """
-    return jsonify(activities=[{'service': activity.service,
-                                'status':  activity.status,
-                                'host':    activity.host,
-                                'logged':  str(activity.logged)}
-                               for activity in Activity.query])
+    return jsonify(events=[{'service':  event.service,
+                            'status':   event.status,
+                            'host':     event.host,
+                            'duration': str(event.duration),
+                            'logged':   str(event.logged)}
+                           for event in Event.query])
 
 
-@api.route('/activities/<int:activity_id>', methods=['GET'])
-def view_activity(activity_id):
+@api.route('/events/<int:event_id>', methods=['GET'])
+def view_event(event_id):
     """
-    View activity.
+    View event.
 
     Example usage::
 
-        curl -i http://127.0.0.1:5000/activities/2
+        curl -i http://127.0.0.1:5000/events/2
     """
-    activity = Activity.query.get_or_404(activity_id)
-    return jsonify(activity={'service': activity.service,
-                             'status':  activity.status,
-                             'host':    activity.host,
-                             'logged':  str(activity.logged)})
+    event = Event.query.get_or_404(event_id)
+    return jsonify(event={'service':  event.service,
+                          'status':   event.status,
+                          'host':     event.host,
+                          'duration': str(event.duration),
+                          'logged':   str(event.logged)})
 
 
-@api.route('/activities', methods=['POST'])
-def add_activity():
+@api.route('/events', methods=['POST'])
+def add_event():
     """
-    Add activity.
+    Add event.
 
     Example usage::
 
-        curl -i -d 'service=database backup' -d 'key=XXXXX' http://127.0.0.1:5000/activities
+        curl -i -d 'service=database backup' -d 'key=XXXXX' http://127.0.0.1:5000/events
     """
     data = request.json or request.form
     try:
@@ -97,15 +101,19 @@ def add_activity():
         abort(400)
     status = data.get('status', 'ok')
     host = data.get('host')
+    try:
+        duration = timedelta(seconds=int(data['seconds']))
+    except KeyError, ValueError:
+        duration = None
     key = data.get('key')
     if status not in STATUS_CHOICES:
         abort(400)
     if key != current_app.config['API_KEY']:
         abort(403)
-    activity = Activity(service, status, host)
-    db.session.add(activity)
+    event = Event(service, status, host, duration)
+    db.session.add(event)
     db.session.commit()
-    uri = url_for('.view_activity', activity_id=activity.id)
-    response = jsonify(activity=uri)
+    uri = url_for('.view_event', event_id=event.id)
+    response = jsonify(event=uri)
     response.location = uri
     return response, 201
