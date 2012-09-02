@@ -7,7 +7,7 @@ REST server views.
 """
 
 
-from datetime import timedelta
+from datetime import date, timedelta
 
 from flask import abort, Blueprint, current_app, jsonify, request, url_for
 
@@ -53,18 +53,20 @@ def apiroot():
 @api.route('/events', methods=['GET'])
 def list_events():
     """
-    List events.
+    List recent events.
 
     Example usage::
 
         curl -i http://127.0.0.1:5000/events
     """
+    oldest = date.today() - timedelta(days=10)
+    events = Event.query.filter(Event.logged >= oldest).order_by(Event.logged.desc())
     return jsonify(events=[{'service':  event.service,
                             'status':   event.status,
                             'host':     event.host,
                             'duration': str(event.duration),
                             'logged':   str(event.logged)}
-                           for event in Event.query])
+                           for event in events])
 
 
 @api.route('/events/<int:event_id>', methods=['GET'])
