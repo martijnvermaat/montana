@@ -53,20 +53,23 @@ def apiroot():
 @api.route('/events', methods=['GET'])
 def list_events():
     """
-    List recent events.
+    List recent events per service/host.
 
     Example usage::
 
         curl -i http://127.0.0.1:5000/events
     """
     oldest = date.today() - timedelta(days=10)
-    events = Event.query.filter(Event.logged >= oldest).order_by(Event.logged.desc())
-    return jsonify(events=[{'service':  event.service,
-                            'status':   event.status,
-                            'host':     event.host,
-                            'duration': str(event.duration),
-                            'logged':   str(event.logged)}
-                           for event in events])
+    services = [{'service': service,
+                 'host':    host,
+                 'events':  [{'service':  event.service,
+                              'status':   event.status,
+                              'host':     event.host,
+                              'duration': str(event.duration),
+                              'logged':   str(event.logged)}
+                           for event in Event.query.filter_by(service=service, host=host).filter(Event.logged >= oldest).order_by(Event.logged.desc())]}
+              for service, host in Event.query.with_entities(Event.service, Event.host).distinct()]
+    return jsonify(services=services, start=str(oldest), end=str(date.today()))
 
 
 @api.route('/events/<int:event_id>', methods=['GET'])
