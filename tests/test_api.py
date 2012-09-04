@@ -53,7 +53,7 @@ class TestApi():
         """
         Test request with incorrect parameter type.
         """
-        r = self.client.get('/api/events/notanumber')
+        r = self.client.get('/api/services/notanumber')
         assert_equal(r.status_code, 404)
 
     def test_incorrect_api_key(self):
@@ -62,8 +62,7 @@ class TestApi():
         """
         data = {'service': 'mail backup',
                 'status': 'ok',
-                'host': 'laptop',
-                'seconds': 148,
+                'duration': 148,
                 'key': 'incorrect'}
         r = self.client.post('/api/events', data=data)
         assert_equal(r.status_code, 403)
@@ -74,8 +73,7 @@ class TestApi():
         """
         data = {'service': 'mail backup',
                 'status': 'ok',
-                'host': 'laptop',
-                'seconds': 148}
+                'duration': 148}
         r = self.client.post('/api/events', data=data)
         assert_equal(r.status_code, 403)
 
@@ -92,15 +90,18 @@ class TestApi():
         for _ in range(10):
             self._add_event()
 
-        r = self.client.get('/api/events')
+        r = self.client.get('/api/services')
         assert_equal(r.status_code, 200)
-        assert_equal(len(json.loads(r.data)['services'][0]['events']), 10)
+        events = json.loads(r.data)['services'][0]['events']
 
-    def _add_event(self, service='some service', status='ok', host='laptop', seconds=148, interval='daily'):
+        r = self.client.get(events)
+        assert_equal(r.status_code, 200)
+        assert_equal(len(json.loads(r.data)['events']), 10)
+
+    def _add_event(self, service='some service', status='ok', duration=148, interval=3600):
         data = {'service': service,
                 'status': status,
-                'host': host,
-                'seconds': seconds,
+                'duration': duration,
                 'interval': interval,
                 'key': 'testing'}
         r = self.client.post('/api/events', data=data)

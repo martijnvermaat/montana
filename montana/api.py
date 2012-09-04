@@ -7,12 +7,13 @@ REST server views.
 """
 
 
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from flask import abort, Blueprint, current_app, jsonify, request, url_for
+from sqlalchemy.orm.exc import NoResultFound
 
 from . import db
-from .models import Event, STATUS_CHOICES
+from .models import Event, Service, STATUS_CHOICES
 
 
 API_VERSION = 1
@@ -44,32 +45,62 @@ def error_not_found(error):
 
 @api.route('/')
 def apiroot():
-    api = {'status':  'ok',
-           'version': API_VERSION,
-           'events':  url_for('.list_events')}
+    api = {'status':   'ok',
+           'version':  API_VERSION,
+           'services': url_for('.list_services')}
     return jsonify(api=api)
 
 
-@api.route('/events', methods=['GET'])
-def list_events():
+@api.route('/services', methods=['GET'])
+def list_services():
     """
-    List recent events per service/host.
+    List services.
 
     Example usage::
 
-        curl -i http://127.0.0.1:5000/events
+        curl -i http://127.0.0.1:5000/services
     """
-    oldest = date.today() - timedelta(days=10)
-    services = [{'service': service,
-                 'host':    host,
-                 'events':  [{'service':  event.service,
-                              'status':   event.status,
-                              'host':     event.host,
-                              'duration': str(event.duration),
-                              'logged':   str(event.logged)}
-                           for event in Event.query.filter_by(service=service, host=host).filter(Event.logged >= oldest).order_by(Event.logged.desc())]}
-              for service, host in Event.query.with_entities(Event.service, Event.host).distinct()]
-    return jsonify(services=services, start=str(oldest), end=str(date.today()))
+    return jsonify(services=[{'uri':      url_for('.view_service', service_id=service.id),
+                              'service':  service.name,
+                              'interval': str(service.interval),
+                              'events':   url_for('.list_events', service_id=service.id)}
+                             for service in Service.query])
+
+
+@api.route('/services/<int:service_id>', methods=['GET'])
+def view_service(service_id):
+    """
+    View service.
+
+    Example usage::
+
+        curl -i http://127.0.0.1:5000/services/2
+    """
+    service = Service.query.get_or_404(service_id)
+    return jsonify(service={'uri':      url_for('.view_service', service_id=service.id),
+                            'service':  service.name,
+                            'interval': str(service.interval),
+                            'events':   url_for('.list_events', service_id=service.id)})
+
+
+@api.route('/services/<int:service_id>/events', methods=['GET'])
+def list_events(service_id):
+    """
+    List recent events per service.
+
+    Example usage::
+
+        curl -i http://127.0.0.1:5000/services/2/events
+    """
+    service = Service.query.get_or_404(service_id)
+    oldest = datetime.now() - timedelta(days=10)
+    events = [{'uri':      url_for('.view_event', event_id=event.id),
+               'service':  url_for('.view_service', service_id=service.id),
+               'status':   event.status,
+               'duration': str(event.duration),
+               'logged':   str(event.logged)}
+              for event in Event.query.filter_by(service=service).filter(Event.logged >= oldest).order_by(Event.logged.desc())]
+    return jsonify(events=events, start=str(oldest), end=str(datetime.now()))
 
 
 @api.route('/events/<int:event_id>', methods=['GET'])
@@ -82,11 +113,10 @@ def view_event(event_id):
         curl -i http://127.0.0.1:5000/events/2
     """
     event = Event.query.get_or_404(event_id)
-    return jsonify(event={'service':  event.service,
+    return jsonify(event={'uri':      url_for('.view_event', event_id=event.id),
+                          'service':  url_for('.view_service', service_id=event.service_id),
                           'status':   event.status,
-                          'host':     event.host,
                           'duration': str(event.duration),
-                          'interval': str(event.interval),
                           'logged':   str(event.logged)})
 
 
@@ -100,32 +130,43 @@ def add_event():
         curl -i -d 'service=database backup' -d 'key=XXXXX' http://127.0.0.1:5000/events
     """
     data = request.json or request.form
-    try:
-        service = data['service']
-    except KeyError:
-        abort(400)
-    status = data.get('status', 'ok')
-    host = data.get('host')
-    try:
-        duration = timedelta(seconds=int(data['seconds']))
-    except KeyError, ValueError:
-        duration = None
-    try:
-        intervals = {'daily': 'days',
-                     'hourly': 'hours',
-                     'weekly': 'weeks'}
-        interval = timedelta(**{intervals[data['interval']]: 1})
-    except KeyError:
-        interval = None
+
     key = data.get('key')
-    if status not in STATUS_CHOICES:
-        abort(400)
     if key != current_app.config['API_KEY']:
         abort(403)
-    event = Event(service, status, host, duration)
+
+    try:
+        service_name = data['service']
+    except KeyError:
+        abort(400)
+
+    status = data.get('status', 'ok')
+    if status not in STATUS_CHOICES:
+        abort(400)
+
+    try:
+        duration = timedelta(seconds=int(data['duration']))
+    except KeyError, ValueError:
+        duration = None
+
+    try:
+        interval = timedelta(seconds=int(data['interval']))
+    except KeyError, ValueError:
+        interval = None
+
+    try:
+        service = Service.query.filter_by(name=service_name).one()
+        service.interval = interval
+    except NoResultFound:
+        service = Service(service_name, interval)
+        db.session.add(service)
+
+    event = Event(service, status, duration)
     db.session.add(event)
     db.session.commit()
-    uri = url_for('.view_event', event_id=event.id)
-    response = jsonify(event=uri)
-    response.location = uri
+
+    service_uri = url_for('.view_service', service_id=service.id)
+    event_uri = url_for('.view_event', event_id=event.id)
+    response = jsonify(service=service_uri, event=event_uri)
+    response.location = event_uri
     return response, 201
