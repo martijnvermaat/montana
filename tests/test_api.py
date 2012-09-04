@@ -45,7 +45,7 @@ class TestApi():
         """
         Dummy test.
         """
-        r = self.client.get('/')
+        r = self.client.get('/api/')
         assert_equal(r.status_code, 200)
         assert_equal(json.loads(r.data)['api']['status'], 'ok')
 
@@ -53,7 +53,7 @@ class TestApi():
         """
         Test request with incorrect parameter type.
         """
-        r = self.client.get('/events/notanumber')
+        r = self.client.get('/api/events/notanumber')
         assert_equal(r.status_code, 404)
 
     def test_incorrect_api_key(self):
@@ -65,7 +65,7 @@ class TestApi():
                 'host': 'laptop',
                 'seconds': 148,
                 'key': 'incorrect'}
-        r = self.client.post('/events', data=data)
+        r = self.client.post('/api/events', data=data)
         assert_equal(r.status_code, 403)
 
     def test_missing_api_key(self):
@@ -76,7 +76,7 @@ class TestApi():
                 'status': 'ok',
                 'host': 'laptop',
                 'seconds': 148}
-        r = self.client.post('/events', data=data)
+        r = self.client.post('/api/events', data=data)
         assert_equal(r.status_code, 403)
 
     def test_event(self):
@@ -92,17 +92,18 @@ class TestApi():
         for _ in range(10):
             self._add_event()
 
-        r = self.client.get('/events')
+        r = self.client.get('/api/events')
         assert_equal(r.status_code, 200)
-        assert_equal(len(json.loads(r.data)['events']), 10)
+        assert_equal(len(json.loads(r.data)['services'][0]['events']), 10)
 
-    def _add_event(self, service='some service', status='ok', host='laptop', seconds=148):
+    def _add_event(self, service='some service', status='ok', host='laptop', seconds=148, interval='daily'):
         data = {'service': service,
                 'status': status,
                 'host': host,
                 'seconds': seconds,
+                'interval': interval,
                 'key': 'testing'}
-        r = self.client.post('/events', data=data)
+        r = self.client.post('/api/events', data=data)
         assert_equal(r.status_code, 201)
         # Todo: Something better than the replace.
         event = r.headers['Location'].replace('http://localhost', '')

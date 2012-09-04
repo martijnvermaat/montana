@@ -86,6 +86,7 @@ def view_event(event_id):
                           'status':   event.status,
                           'host':     event.host,
                           'duration': str(event.duration),
+                          'interval': str(event.interval),
                           'logged':   str(event.logged)})
 
 
@@ -109,6 +110,13 @@ def add_event():
         duration = timedelta(seconds=int(data['seconds']))
     except KeyError, ValueError:
         duration = None
+    try:
+        intervals = {'daily': 'days',
+                     'hourly': 'hours',
+                     'weekly': 'weeks'}
+        interval = timedelta(**{intervals[data['interval']]: 1})
+    except KeyError:
+        interval = None
     key = data.get('key')
     if status not in STATUS_CHOICES:
         abort(400)

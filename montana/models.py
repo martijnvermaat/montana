@@ -24,13 +24,15 @@ class Event(db.Model):
     status = db.Column(db.Enum(*STATUS_CHOICES, name='status'))
     host = db.Column(db.String(200))
     duration = db.Column(db.Interval)
+    interval = db.Column(db.Interval)
     logged = db.Column(db.DateTime)
 
-    def __init__(self, service, status='ok', host=None, duration=None):
+    def __init__(self, service, status='ok', host=None, duration=None, interval=None):
         self.service = service
         self.status = status
         self.host = host
         self.duration = duration
+        self.interval = interval
         self.logged = datetime.now()
 
     def __repr__(self):

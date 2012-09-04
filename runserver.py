@@ -35,7 +35,7 @@ if info.drivername == 'sqlite' and info.database in (None, '', ':memory:'):
     print 'Setting up in-memory database...'
     with app.test_request_context():
         db.create_all()
-        if False:
+        if True:
             # Change the condition to have some fake data inserted.
             from datetime import datetime, timedelta
             from montana.models import Event
