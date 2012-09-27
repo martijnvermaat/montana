@@ -7,7 +7,7 @@ Montana, a simple event monitor.
 """
 
 
-from flask import Flask, render_template
+from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 
 
@@ -64,10 +64,7 @@ def create_app(settings=None):
     from .api import api
     app.register_blueprint(api, url_prefix='/api')
 
-    # There's really no need for the frontend to go through Flask, it's just
-    # static files. But to ease deployment we have it in here for the moment.
-    @app.route('/')
-    def index():
-        return render_template('index.html')
+    from .dashboard import dashboard
+    app.register_blueprint(dashboard, url_prefix='/')
 
     return app
