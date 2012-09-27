@@ -62,8 +62,7 @@ def list_services():
     """
     return jsonify(services=[{'uri':      url_for('.view_service', service_id=service.id),
                               'service':  service.name,
-                              'interval': str(service.interval),
-                              'events':   url_for('.list_events', service_id=service.id)}
+                              'interval': str(service.interval)}
                              for service in Service.query])
 
 
@@ -79,28 +78,7 @@ def view_service(service_id):
     service = Service.query.get_or_404(service_id)
     return jsonify(service={'uri':      url_for('.view_service', service_id=service.id),
                             'service':  service.name,
-                            'interval': str(service.interval),
-                            'events':   url_for('.list_events', service_id=service.id)})
-
-
-@api.route('/services/<int:service_id>/events', methods=['GET'])
-def list_events(service_id):
-    """
-    List recent events per service.
-
-    Example usage::
-
-        curl -i http://127.0.0.1:5000/services/2/events
-    """
-    service = Service.query.get_or_404(service_id)
-    oldest = datetime.now() - timedelta(days=10)
-    events = [{'uri':      url_for('.view_event', event_id=event.id),
-               'service':  url_for('.view_service', service_id=service.id),
-               'status':   event.status,
-               'duration': str(event.duration),
-               'logged':   str(event.logged)}
-              for event in Event.query.filter_by(service=service).filter(Event.logged >= oldest).order_by(Event.logged.desc())]
-    return jsonify(events=events, start=str(oldest), end=str(datetime.now()))
+                            'interval': str(service.interval)})
 
 
 @api.route('/events/<int:event_id>', methods=['GET'])
