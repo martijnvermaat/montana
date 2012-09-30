@@ -92,11 +92,7 @@ class TestApi():
 
         r = self.client.get('/api/services')
         assert_equal(r.status_code, 200)
-        events = json.loads(r.data)['services'][0]['events']
-
-        r = self.client.get(events)
-        assert_equal(r.status_code, 200)
-        assert_equal(len(json.loads(r.data)['events']), 10)
+        assert_equal(len(json.loads(r.data)['services']), 1)
 
     def _add_event(self, service='some service', status='ok', duration=148, interval=3600):
         data = {'service': service,
