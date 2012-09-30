@@ -12,42 +12,38 @@ from datetime import datetime
 from . import db
 
 
-STATUS_CHOICES = ('ok', 'error')
+STATUS_CHOICES = ('success', 'failure')
 
 
 class Service(db.Model):
     """
     Service.
     """
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200))
-    interval = db.Column(db.Interval)
+    name = db.Column(db.String(50), primary_key=True)
+    description = db.Column(db.String(200))
 
-    def __init__(self, name, interval=None):
+    def __init__(self, name, description=None):
         self.name = name
-        self.interval = interval
+        self.description = description or name
 
     def __repr__(self):
-        return 'Service(%r)' % self.name
+        return '<Service %s>' % self.name
 
 
 class Event(db.Model):
     """
     Event.
     """
-    id = db.Column(db.Integer, primary_key=True)
-    service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
+    service_name = db.Column(db.Integer, db.ForeignKey('service.name'), primary_key=True)
+    logged = db.Column(db.DateTime, primary_key=True)
     status = db.Column(db.Enum(*STATUS_CHOICES, name='status'))
-    duration = db.Column(db.Interval)
-    logged = db.Column(db.DateTime)
 
     service = db.relationship(Service, backref=db.backref('events', lazy='dynamic'))
 
-    def __init__(self, service, status='ok', duration=None):
+    def __init__(self, service, status='success'):
         self.service = service
-        self.status = status
-        self.duration = duration
         self.logged = datetime.now()
+        self.status = status
 
     def __repr__(self):
-        return 'Event(%r, %r)' % (self.service, self.status)
+        return '<Event %s, %s, %s>' % (self.service_name, self.status, self.logged)
