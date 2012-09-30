@@ -21,4 +21,9 @@ dashboard = Blueprint('dashboard', __name__)
 
 @dashboard.route('/')
 def index():
-    return render_template('index.html')
+    def get_events(service):
+        return [dict(logged=event.logged, status=event.status)
+                for event in service.events.order_by(Event.logged.desc()).limit(10)]
+    services = [dict(name=service.name, description=service.description, events=get_events(service))
+                for service in Service.query.all()]
+    return render_template('dashboard.html', services=services)

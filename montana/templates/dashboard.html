@@ -11,5 +11,14 @@
   </head>
   <body>
     <h1>Montana, a simple event monitor</h1>
+    {% for service in services %}
+      <h2>{{ service.description }}</h2>
+      <p>2 days ago</p>
+      <ul>
+      {% for event in service.events %}
+        <li class="{{ event.status }}">{{ event.logged }}</li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
   </body>
 </html>
