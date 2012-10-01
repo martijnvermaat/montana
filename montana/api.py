@@ -72,7 +72,7 @@ def add_event():
 
     Example usage::
 
-        curl -i -d 'name=db-backup' -d 'key=XXXXX' http://127.0.0.1:5000/events
+        curl -i -d 'service=db-backup' -d 'key=XXXXX' http://127.0.0.1:5000/events
     """
     data = request.json or request.form
 
@@ -81,7 +81,7 @@ def add_event():
         abort(403)
 
     try:
-        name = data['name']
+        service_name = data['service']
     except KeyError:
         abort(400)
 
@@ -89,12 +89,14 @@ def add_event():
     if status not in STATUS_CHOICES:
         abort(400)
 
-    description = data.get('description', name)
-
-    service = Service.query.get(name)
+    service = Service.query.get(service_name)
     if not service:
-        service = Service(name, description)
+        service = Service(service_name)
         db.session.add(service)
+
+    description = data.get('description')
+    if description:
+        service.description = description
 
     event = Event(service, status)
     db.session.add(event)

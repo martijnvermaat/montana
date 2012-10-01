@@ -94,17 +94,9 @@ class TestApi():
         assert_equal(r.status_code, 200)
         assert_equal(len(json.loads(r.data)['services']), 1)
 
-    def _add_event(self, service='some service', status='ok', duration=148, interval=3600):
+    def _add_event(self, service='some service', status='success'):
         data = {'service': service,
                 'status': status,
-                'duration': duration,
-                'interval': interval,
                 'key': 'testing'}
         r = self.client.post('/api/events', data=data)
         assert_equal(r.status_code, 201)
-        # Todo: Something better than the replace.
-        event = r.headers['Location'].replace('http://localhost', '')
-
-        r = self.client.get(event)
-        assert_equal(r.status_code, 200)
-        return event
