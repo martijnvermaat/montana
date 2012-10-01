@@ -23,8 +23,10 @@ def apply_driver_hacks(self, app, info, options):
 SQLAlchemy.apply_driver_hacks = apply_driver_hacks
 
 
+import glob
+import sys
 from sqlalchemy.engine.url import make_url
-from montana import create_app, db
+from montana import create_app, db, models
 
 
 app = create_app()
@@ -32,65 +34,14 @@ app = create_app()
 # If we have an in-memory database, setup the schema first.
 info = make_url(app.config['SQLALCHEMY_DATABASE_URI'])
 if info.drivername == 'sqlite' and info.database in (None, '', ':memory:'):
-    print 'Setting up in-memory database...'
+    print 'Setting up in-memory database'
     with app.test_request_context():
         db.create_all()
-        if True:
-            # Change the condition to have some fake data inserted.
-            from datetime import datetime, timedelta
-            from montana.models import Event, Service
-            service = Service('Mail backup martijn')
-            event = Event(service, 'success')
-            event.logged = datetime.now()
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=1)
-            db.session.add(event)
-            event = Event(service, 'failure')
-            event.logged = datetime.now() - timedelta(days=2)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=3)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=4)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=5)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=6)
-            db.session.add(event)
-            service = Service('Mail backup rosanne')
-            event = Event(service, 'success')
-            event.logged = datetime.now()
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=1)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=2)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=3)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=4)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=5)
-            db.session.add(event)
-            service = Service('Mail backup rosanne 2')
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=2)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=3)
-            db.session.add(event)
-            event = Event(service, 'success')
-            event.logged = datetime.now() - timedelta(days=4)
-            db.session.add(event)
-            db.session.commit()
-    print 'Done setting up in-memory database'
+
+if '--load-fixtures' in sys.argv:
+    with app.test_request_context():
+        for fixture in sorted(glob.iglob('fixtures/*.fixture.json')):
+            print 'Loading fixture: %s' % fixture
+            models.load_fixture(open(fixture))
 
 app.run()

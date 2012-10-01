@@ -1,0 +1,4 @@
+{"model":     "montana.models.Service",
+ "instances": [{"args": ["backup.email.martijn", "Martijn e-mail backup"]},
+               {"args": ["backup.email.bill", "Bill Gates e-mail backup"]},
+               {"args": ["some.service", "Some service monitor"]}]}

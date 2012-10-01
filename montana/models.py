@@ -8,6 +8,7 @@ Models backed by SQL using SQLAlchemy.
 
 
 from datetime import datetime
+import json
 
 from . import db
 
@@ -47,3 +48,35 @@ class Event(db.Model):
 
     def __repr__(self):
         return '<Event %s, %s, %s>' % (self.service_name, self.status, self.logged)
+
+
+def load_fixture(handle):
+    """
+    Load json fixture from open filehandle.
+
+    For an examples, see the 'fixtures' directory in the project root.
+    """
+    model_classes = {'montana.models.Service': Service,
+                     'montana.models.Event': Event}
+
+    # Evaluate 'special' values. Currently only resolving model instances for
+    # string values of the form 'instance:<model_class>:<primary_key>'
+    def evaluate(value):
+        if isinstance(value, (str, unicode)) and value.startswith('instance:'):
+            _, model, primary_key = value.split(':')
+            return model_classes[model].query.get(primary_key)
+        return value
+
+    fixture = json.load(handle)
+    model = model_classes[fixture['model']]
+
+    for instance in fixture['instances']:
+        args = [evaluate(arg) for arg in instance.get('args', [])]
+        kwargs = dict((key, evaluate(value))
+                      for key, value in instance.get('kwargs', {}))
+        i = model(*args, **kwargs)
+        for key, value in instance.get('props', {}):
+            setattr(i, key, evaluate(value))
+        db.session.add(i)
+
+    db.session.commit()
