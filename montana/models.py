@@ -59,12 +59,18 @@ def load_fixture(handle):
     model_classes = {'montana.models.Service': Service,
                      'montana.models.Event': Event}
 
-    # Evaluate 'special' values. Currently only resolving model instances for
-    # string values of the form 'instance:<model_class>:<primary_key>'
+    # Evaluate 'special' string values. Currently the following patterns are
+    # supported:
+    # - 'instance:<model_class>:<primary_key>' is resolved to a model
+    #   instance.
+    # - 'date:<YYY>-<MM>-<DD>' is converted to a datetime.datetime instance.
     def evaluate(value):
-        if isinstance(value, (str, unicode)) and value.startswith('instance:'):
-            _, model, primary_key = value.split(':')
-            return model_classes[model].query.get(primary_key)
+        if isinstance(value, (str, unicode)):
+            if value.startswith('instance:'):
+                _, model, primary_key = value.split(':')
+                return model_classes[model].query.get(primary_key)
+            if value.startswith('date:'):
+                return datetime.strptime(value.split(':')[1], '%Y-%m-%d')
         return value
 
     fixture = json.load(handle)
@@ -73,9 +79,9 @@ def load_fixture(handle):
     for instance in fixture['instances']:
         args = [evaluate(arg) for arg in instance.get('args', [])]
         kwargs = dict((key, evaluate(value))
-                      for key, value in instance.get('kwargs', {}))
+                      for key, value in instance.get('kwargs', {}).items())
         i = model(*args, **kwargs)
-        for key, value in instance.get('props', {}):
+        for key, value in instance.get('props', {}).items():
             setattr(i, key, evaluate(value))
         db.session.add(i)
 
