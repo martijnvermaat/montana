@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    // Todo: Cleanup.
     $('li.event').tooltipsy({delay: 0, offset: [0, 10]});
     $('a[rel*=modal]').leanModal({top: 200});
     $('form').submit(function(e) {
@@ -12,6 +13,8 @@ $(document).ready(function() {
                               dataType: 'json'});
         request.success(function(response) {
             $('a', form.parent().prev()).text($('input[name="description"]', form).val());
+            $('input[name="key"]').val($('input[name="key"]', form).val());
+            localStorage.setItem('api-key', $('input[name="key"]', form).val());
             $('#lean_overlay').click();
         });
         request.error(function(request) {
@@ -33,4 +36,5 @@ $(document).ready(function() {
             $(this).closest('form').submit();
         }
     });
+    $('input[name="key"]').val(localStorage.getItem('api-key'));
 });

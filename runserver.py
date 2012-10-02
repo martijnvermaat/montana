@@ -44,4 +44,7 @@ if '--load-fixtures' in sys.argv:
             print 'Loading fixture: %s' % fixture
             models.load_fixture(open(fixture))
 
+if not app.config['API_KEY']:
+    print 'Warning: no API key set!'
+
 app.run()
