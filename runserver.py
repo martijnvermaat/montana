@@ -23,11 +23,8 @@ def apply_driver_hacks(self, app, info, options):
 SQLAlchemy.apply_driver_hacks = apply_driver_hacks
 
 
-import glob
-import sys
 from sqlalchemy.engine.url import make_url
-from montana import create_app, db, models
-
+from montana import create_app, db
 
 app = create_app()
 
@@ -38,13 +35,19 @@ if info.drivername == 'sqlite' and info.database in (None, '', ':memory:'):
     with app.test_request_context():
         db.create_all()
 
-if '--load-fixtures' in sys.argv:
-    with app.test_request_context():
-        for fixture in sorted(glob.iglob('fixtures/*.fixture.json')):
-            print 'Loading fixture: %s' % fixture
-            models.load_fixture(open(fixture))
 
-if not app.config['API_KEY']:
-    print 'Warning: no API key set!'
+if __name__ == '__main__':
+    import glob
+    import sys
+    from montana import models
 
-app.run()
+    if '--load-fixtures' in sys.argv:
+        with app.test_request_context():
+            for fixture in sorted(glob.iglob('fixtures/*.fixture.json')):
+                print 'Loading fixture: %s' % fixture
+                models.load_fixture(open(fixture))
+
+    if not app.config['API_KEY']:
+        print 'Warning: no API key set!'
+
+    app.run()
