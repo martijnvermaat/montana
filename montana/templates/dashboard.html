@@ -22,7 +22,7 @@
       <form method="post" action="/api/services">
         <input type="hidden" name="name" value="{{ service.name }}">
         <p><input type="text" name="description" value="{{ service.description }}"></p>
-        <p><input type="password" name="key"></p>
+        <p><input type="password" name="key" placeholder="API key"></p>
         <input type="submit" value="Edit">
       </form>
     </div>
