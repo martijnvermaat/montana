@@ -76,7 +76,7 @@ def add_service():
     """
     data = request.json or request.form
 
-    key = data.get('key')
+    key = data.get('key') or None
     if key != current_app.config['API_KEY']:
         abort(403)
 
