@@ -8,7 +8,7 @@ DEBUG = True
 ADMINS = []
 
 # API key for adding activities (if required)
-API_KEY = None
+API_KEY = 'xxx' #None
 
 # Activity database
 SQLALCHEMY_DATABASE_URI = 'sqlite://'

@@ -65,6 +65,41 @@ def list_services():
                              for service in Service.query])
 
 
+@api.route('/services', methods=['POST'])
+def add_service():
+    """
+    Add (or edit) service.
+
+    Example usage::
+
+        curl -i -d 'name=db-backup' -d 'description=Database backup' -d 'key=XXXXX' http://127.0.0.1:5000/services
+    """
+    data = request.json or request.form
+
+    key = data.get('key')
+    if key != current_app.config['API_KEY']:
+        abort(403)
+
+    try:
+        name = data['name']
+    except KeyError:
+        abort(400)
+
+    service = Service.query.get(name)
+    if not service:
+        service = Service(name)
+        db.session.add(service)
+
+    description = data.get('description')
+    if description:
+        service.description = description
+
+    db.session.commit()
+
+    response = jsonify(status='Successfully added service')
+    return response, 201
+
+
 @api.route('/events', methods=['POST'])
 def add_event():
     """
