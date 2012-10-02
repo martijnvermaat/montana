@@ -32,6 +32,8 @@
       <li class="event {{ event.status }}" title="{{ event.logged|datetime }}">{{ event.status }}</li>
       {% endfor %}
     </ul>
+    {% else %}
+    <p>No services known.</p>
     {% endfor %}
   </body>
 </html>
