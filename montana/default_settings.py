@@ -4,9 +4,6 @@
 # Enable debugging mode
 DEBUG = True
 
-# Addresses to send errors to
-ADMINS = []
-
 # API key for adding activities (if required)
 API_KEY = None
 
