@@ -12,13 +12,13 @@
   <body>
     <h1>Montana, a simple event monitor</h1>
     {% for service in services|sort(reverse=True,attribute='last_event') %}
-      <h2>{{ service.description }}</h2>
-      <p>{{ service.last_event|relative }}</p>
-      <ul>
+    <h2>{{ service.description }}</h2>
+    <p>{{ service.last_event|relative }}</p>
+    <ul>
       {% for event in service.events %}
-        <li class="{{ event.status }}">{{ event.logged }}</li>
+      <li class="{{ event.status }}">{{ event.logged }}</li>
       {% endfor %}
-      </ul>
+    </ul>
     {% endfor %}
   </body>
 </html>

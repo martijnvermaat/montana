@@ -1,7 +1,42 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    /* http://subtlepatterns.com/asfalt/ */
+    background: #151515 url('../images/asfalt.png');
+    color: antiquewhite;
+    margin: 3em;
+    font-size: 1em;
+    font-family: georgia, times, serif;
+    line-height: 1em;
+}
+
+h1 {
+    /* http://subtlepatterns.com/grid/ */
+    background: #dbdbdb url('../images/grid.png');
+    color: darkslategray;
+    border-bottom: 2px #787878 solid;
+    margin: -1.5em -1.5em 1em -1.5em;
+    padding: 1.5em 0 0.5em 6.5em;
+    font-size: 2em;
+    font-weight: normal;
+    font-style: italic;
+    line-height: 2em;
+}
+
+h2 {
+    color: #787878;
+    margin-bottom: 1em;
+    font-size: 1em;
+    font-weight: bold;
+    line-height: 1em;
+}
+
 ul {
     list-style-type: none;
     margin: 0 0 5em 10em;
-    padding: 0;
 }
 
 li {
@@ -13,16 +48,17 @@ li {
 
 li.success, li.failure {
     width: 2em;
+    height: 2em;
     border-radius: 1em;
     text-indent: -1000em;
 }
 
 li.success{
-    background: green;
+    background: olivedrab;
 }
 
 li.failure {
-    background: red;
+    background: firebrick;
 }
 
 p {
