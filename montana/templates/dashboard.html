@@ -7,16 +7,17 @@
     <meta name="author" content="Martijn Vermaat">
     <link rel="stylesheet" href="static/stylesheets/montana.css" media="all" />
     <script src="static/scripts/jquery-1.8.1.min.js"></script>
+    <script src="static/scripts/tooltipsy.min.js"></script>
     <script src="static/scripts/montana.js"></script>
   </head>
   <body>
     <h1>Montana, a simple event monitor</h1>
     {% for service in services|sort(reverse=True,attribute='last_event') %}
     <h2>{{ service.description }}</h2>
-    <p>{{ service.last_event|relative }}</p>
+    <p class="last">{{ service.last_event|timedelta }}</p>
     <ul>
       {% for event in service.events %}
-      <li class="{{ event.status }}">{{ event.logged }}</li>
+      <li class="event {{ event.status }}" title="{{ event.logged|datetime }}">{{ event.status }}</li>
       {% endfor %}
     </ul>
     {% endfor %}

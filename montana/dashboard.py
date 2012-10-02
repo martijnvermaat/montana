@@ -38,8 +38,17 @@ def index():
     return render_template('dashboard.html', services=services)
 
 
-@dashboard.app_template_filter('relative')
-def relative_datetime(dt, now=None):
+@dashboard.app_template_filter('datetime')
+def format_datetime(dt, format='full'):
+    if format == 'full':
+        format = '%A, %B {day:d} at %H:%M'.format(day=dt.day)
+    elif format == 'medium':
+        format = '%A, %B {day:d} %Y at %H:%M'.format(day=dt.day)
+    return dt.strftime(format)
+
+
+@dashboard.app_template_filter('timedelta')
+def format_timedelta(dt, now=None):
     # Based on http://code.activestate.com/recipes/576880-convert-datetime-in-python-to-user-friendly-repres/#c1
     if not now:
         now = datetime.now()

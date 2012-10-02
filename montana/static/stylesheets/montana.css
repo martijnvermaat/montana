@@ -46,7 +46,7 @@ li {
     line-height: 2em;
 }
 
-li.success, li.failure {
+li.event {
     width: 2em;
     height: 2em;
     border-radius: 1em;
@@ -61,7 +61,7 @@ li.failure {
     background: firebrick;
 }
 
-p {
+p.last {
     float: left;
     width: 10em;
     margin: 0;
@@ -72,4 +72,15 @@ p {
 
 h2 {
     clear: both;
+}
+
+.tooltipsy {
+    padding: 10px;
+    max-width: 300px;
+    color: #303030;
+    background-color: #f5f5b5;
+    border: 1px solid #deca7e;
+    -moz-box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+    -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+    box-shadow: 0 0 10px rgba(0, 0, 0, .5);
 }
